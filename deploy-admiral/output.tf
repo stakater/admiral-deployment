@@ -28,14 +28,14 @@
 # limitations under the License.
 ###############################################################################
 output "instance-id" {
-  value = "${module.solo-instnace.instance-id}"
+  value = "${module.solo-instance.instance-id}"
 }
 
 output "private-ip" {
-  value = "${module.solo-instnace.private-ip}"
+  value = "${module.solo-instance.private-ip}"
 }
 
 # Public Elastic IP
 output "public-ip" {
-  value = "${module.solo-instnace.public-ip}"
+  value = "${module.solo-instance.public-ip}"
 }
