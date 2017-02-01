@@ -91,12 +91,7 @@ resource "aws_route53_record" "admiral" {
   zone_id = "${data.terraform_remote_state.env_state.route53_private_zone_id}"
   name = "admiral-${var.environment}"
   type = "A"
-
-  alias {
-    name = "${aws_elb.deployer-elb-active.dns_name}"
-    zone_id = "${aws_elb.deployer-elb-active.zone_id}"
-    evaluate_target_health = true
-  }
+  records = ["${module.solo-instance.public-ip}"]
 }
 
 # Security Group rules for applications in admiral
