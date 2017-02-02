@@ -123,6 +123,20 @@ resource "aws_security_group_rule" "rule-22" {
   }
 }
 
+## Allow access to etcd
+resource "aws_security_group_rule" "rule-etcd" {
+  type                     = "ingress"
+  from_port                = 2379
+  to_port                  = 2380
+  protocol                 = "tcp"
+  cidr_blocks              = ["${module.network.vpc_cidr}"]
+  security_group_id        = "${data.terraform_remote_state.global-admiral.etcd-security-group-id}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 # Kibana
 resource "aws_security_group_rule" "rule-5601" {
   type                     = "ingress"
