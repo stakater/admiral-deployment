@@ -53,14 +53,14 @@ data "terraform_remote_state" "global-admiral" {
 
 module "solo-instance" {
   source = "git::https://github.com/stakater/blueprint-solo-instance-aws.git//modules"
-  name                        = "admiral-${var.environment}"
+  name                        = "${var.stack_name}-admiral-${var.environment}"
   vpc_id                      = "${data.terraform_remote_state.env_state.vpc_id}"
   subnet_id                   = "${element(split(",", data.terraform_remote_state.env_state.public_subnet_ids), 0)}" # First subnet
   iam_assume_role_policy      = "${file("../policy/assume-role-policy.json")}"
   iam_role_policy             = "${data.template_file.deployer-policy.rendered}"
   ami                         = "${var.ami_id}"
   instance_type               = "${var.instance_type}"
-  key_name                    = "admiral-${var.environment}-key"
+  key_name                    = "${var.stack_name}-admiral-${var.environment}-key"
   associate_public_ip_address = true
   user_data                   = "" # No user data as custom AMI will be launched
   root_vol_size               = 30
@@ -71,7 +71,7 @@ module "solo-instance" {
 # make sure this resource is created before the module the solo-instance module
 resource "null_resource" "create-key-pair" {
   provisioner "local-exec" {
-      command = "../scripts/create-keypair.sh -k admiral-${var.environment}-key -r ${var.aws_region} -b ${data.terraform_remote_state.env_state.config-bucket-name}"
+      command = "../scripts/create-keypair.sh -k ${var.stack_name}-admiral-${var.environment}-key -r ${var.aws_region} -b ${data.terraform_remote_state.env_state.config-bucket-name}"
   }
 }
 
@@ -89,20 +89,33 @@ data "template_file" "deployer-policy" {
 # Route53 record
 resource "aws_route53_record" "admiral" {
   zone_id = "${data.terraform_remote_state.env_state.route53_private_zone_id}"
-  name = "admiral-${var.environment}"
+  name = "${var.stack_name}-admiral-${var.environment}"
   type = "A"
   ttl  = "300"
   records = ["${module.solo-instance.public-ip}"]
 }
 
 # Security Group rules for applications in admiral
+resource "aws_security_group_rule" "rule-22" {
+  type                     = "ingress"
+  from_port                = 22
+  to_port                  = 22
+  protocol                 = "tcp"
+  cidr_blocks              = ["${data.terraform_remote_state.env_state.vpc_cidr}"]
+  security_group_id        = "${module.solo-instance.security_group_id}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 # Kibana
 resource "aws_security_group_rule" "rule-5601" {
   type                     = "ingress"
   from_port                = 5601
   to_port                  = 5601
   protocol                 = "tcp"
-  cidr_blocks              = ["${data.terraform_remote_state.env_state.vpc_cidr}"]
+  cidr_blocks              = ["0.0.0.0/0"]
   security_group_id        = "${module.solo-instance.security_group_id}"
 
   lifecycle {

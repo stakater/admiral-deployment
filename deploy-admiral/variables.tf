@@ -27,6 +27,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ###############################################################################
+variable "stack_name" {
+  default = "Name of the Stack"
+}
 
 variable "ami_id" {
   type        = "string"
