@@ -91,6 +91,7 @@ resource "aws_route53_record" "admiral" {
   zone_id = "${data.terraform_remote_state.env_state.route53_private_zone_id}"
   name = "admiral-${var.environment}"
   type = "A"
+  ttl  = "300"
   records = ["${module.solo-instance.public-ip}"]
 }
 
