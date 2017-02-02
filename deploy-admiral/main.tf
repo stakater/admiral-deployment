@@ -129,7 +129,7 @@ resource "aws_security_group_rule" "rule-etcd" {
   from_port                = 2379
   to_port                  = 2380
   protocol                 = "tcp"
-  cidr_blocks              = ["${module.network.vpc_cidr}"]
+  cidr_blocks              = ["${data.terraform_remote_state.env_state.vpc_cidr}"]
   security_group_id        = "${data.terraform_remote_state.global-admiral.etcd-security-group-id}"
 
   lifecycle {
