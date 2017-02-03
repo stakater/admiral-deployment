@@ -55,13 +55,13 @@ module "solo-instance" {
   source = "git::https://github.com/stakater/blueprint-solo-instance-aws.git//modules"
   name                        = "${var.stack_name}-admiral-${var.environment}"
   vpc_id                      = "${data.terraform_remote_state.env_state.vpc_id}"
-  subnet_id                   = "${element(split(",", data.terraform_remote_state.env_state.public_subnet_ids), 0)}" # First subnet
+  subnet_id                   = "${element(split(",", data.terraform_remote_state.env_state.private_app_subnet_ids), 0)}" # First subnet
   iam_assume_role_policy      = "${file("../policy/assume-role-policy.json")}"
   iam_role_policy             = "${data.template_file.deployer-policy.rendered}"
   ami                         = "${var.ami_id}"
   instance_type               = "${var.instance_type}"
   key_name                    = "${var.stack_name}-admiral-${var.environment}-key"
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   user_data                   = "" # No user data as custom AMI will be launched
   root_vol_size               = 30
   root_vol_del_on_term        = true
