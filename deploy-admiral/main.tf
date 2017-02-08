@@ -87,15 +87,6 @@ data "template_file" "deployer-policy" {
   }
 }
 
-# Route53 record
-resource "aws_route53_record" "admiral" {
-  zone_id = "${data.terraform_remote_state.env_state.route53_private_zone_id}"
-  name = "${var.stack_name}-${var.environment}-admiral"
-  type = "A"
-  ttl  = "300"
-  records = ["${module.solo-instance.public-ip}"]
-}
-
 # Security Group rules for applications in admiral
 # Allow Outgoing traffic
 resource "aws_security_group_rule" "rule-outgoing" {
