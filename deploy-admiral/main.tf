@@ -53,15 +53,16 @@ data "terraform_remote_state" "global-admiral" {
 
 module "solo-instance" {
   source = "git::https://github.com/stakater/blueprint-solo-instance-aws.git//modules"
-  name                        = "${var.stack_name}-admiral-${var.environment}"
+  name                        = "${var.stack_name}-${var.environment}-admiral"
   vpc_id                      = "${data.terraform_remote_state.env_state.vpc_id}"
   subnet_id                   = "${element(split(",", data.terraform_remote_state.env_state.private_app_subnet_ids), 0)}" # First subnet
   iam_assume_role_policy      = "${file("../policy/assume-role-policy.json")}"
   iam_role_policy             = "${data.template_file.deployer-policy.rendered}"
   ami                         = "${var.ami_id}"
   instance_type               = "${var.instance_type}"
-  key_name                    = "${var.stack_name}-admiral-${var.environment}-key"
+  key_name                    = "${var.stack_name}-${var.environment}-admiral-key"
   associate_public_ip_address = false
+  enable_eip                  = false
   user_data                   = "" # No user data as custom AMI will be launched
   root_vol_size               = 30
   root_vol_del_on_term        = true
@@ -71,7 +72,7 @@ module "solo-instance" {
 # make sure this resource is created before the module the solo-instance module
 resource "null_resource" "create-key-pair" {
   provisioner "local-exec" {
-      command = "../scripts/create-keypair.sh -k ${var.stack_name}-admiral-${var.environment}-key -r ${var.aws_region} -b ${data.terraform_remote_state.env_state.config-bucket-name}"
+      command = "../scripts/create-keypair.sh -k ${var.stack_name}-${var.environment}-admiral-key -r ${var.aws_region} -b ${data.terraform_remote_state.env_state.config-bucket-name}"
   }
 }
 
@@ -89,7 +90,7 @@ data "template_file" "deployer-policy" {
 # Route53 record
 resource "aws_route53_record" "admiral" {
   zone_id = "${data.terraform_remote_state.env_state.route53_private_zone_id}"
-  name = "${var.stack_name}-admiral-${var.environment}"
+  name = "${var.stack_name}-${var.environment}-admiral"
   type = "A"
   ttl  = "300"
   records = ["${module.solo-instance.public-ip}"]
