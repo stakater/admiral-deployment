@@ -61,7 +61,7 @@ module "solo-instance" {
   ami                         = "${var.ami_id}"
   instance_type               = "${var.instance_type}"
   key_name                    = "${var.stack_name}-${var.environment}-admiral-key"
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   enable_eip                  = false
   user_data                   = "" # No user data as custom AMI will be launched
   root_vol_size               = 30
