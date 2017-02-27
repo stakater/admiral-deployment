@@ -64,7 +64,7 @@ module "solo-instance" {
   associate_public_ip_address = false
   enable_eip                  = false
   user_data                   = "" # No user data as custom AMI will be launched
-  root_vol_size               = 30
+  root_vol_size               = 100
   root_vol_del_on_term        = true
 }
 
@@ -121,7 +121,21 @@ resource "aws_security_group_rule" "rule-5601" {
   from_port                = 5601
   to_port                  = 5601
   protocol                 = "tcp"
-  cidr_blocks              = ["0.0.0.0/0"]
+  cidr_blocks              = ["${data.terraform_remote_state.env_state.vpc_cidr}"]
+  security_group_id        = "${module.solo-instance.security_group_id}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Logstash
+resource "aws_security_group_rule" "rule-5044" {
+  type                     = "ingress"
+  from_port                = 5044
+  to_port                  = 5044
+  protocol                 = "tcp"
+  cidr_blocks              = ["${data.terraform_remote_state.env_state.vpc_cidr}"]
   security_group_id        = "${module.solo-instance.security_group_id}"
 
   lifecycle {
